@@ -65,7 +65,7 @@ resizeCanvas();
 
 // BIRD IMAGE
 const birdImg = new Image();
-birdImg.src = "lhian.png"; // your PNG file
+birdImg.src = "lhian.png"; // replace with your PNG URL
 
 // Bird position and size
 let birdX = 50;
@@ -82,13 +82,30 @@ let jump = -7;
 let pipes = [];
 let pipeWidth = 60;
 let pipeGap = 200;
-let pipeSpeed = 3;           // how fast pipes move
-let minPipeDistance = 250;   // minimum pixel distance between pipes
+let pipeSpeed = 3;
+let minPipeDistance = 320; // horizontal spacing between pipes
 
 // Game state
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
+
+// SOUND EFFECTS
+let flapSound = new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3");
+let pointSound = new Audio("https://www.soundjay.com/button/sounds/button-09.mp3");
+let hitSound = new Audio("https://www.soundjay.com/button/sounds/button-10.mp3");
+
+// Preload sounds (required for mobile browsers)
+function initSounds() {
+    [flapSound, pointSound, hitSound].forEach(sound => {
+        sound.play().catch(()=>{});
+        sound.pause();
+        sound.currentTime = 0;
+    });
+}
+document.addEventListener("keydown", initSounds, {once:true});
+document.addEventListener("mousedown", initSounds, {once:true});
+document.addEventListener("touchstart", initSounds, {once:true});
 
 // Set bird height based on aspect ratio
 birdImg.onload = function() {
@@ -110,7 +127,8 @@ function createPipe() {
     pipes.push({
         x: canvas.width,
         top: topHeight,
-        bottom: bottomHeight
+        bottom: bottomHeight,
+        scored: false
     });
 }
 
@@ -123,7 +141,7 @@ function drawPipes() {
     });
 }
 
-// Update pipe positions and create new pipes (pixel-based spacing)
+// Update pipe positions and create new pipes
 function updatePipes() {
     pipes.forEach(p => p.x -= pipeSpeed);
 
@@ -154,9 +172,11 @@ function detectCollision() {
 // Update score
 function updateScore() {
     pipes.forEach(p => {
-        if (p.x + pipeWidth === birdX) {
+        if (!p.scored && p.x + pipeWidth < birdX) {
             score++;
+            p.scored = true;
             document.getElementById("score").innerText = score;
+            pointSound.play();
         }
     });
 }
@@ -198,6 +218,7 @@ function gameLoop() {
 
         if (detectCollision()) {
             gameOver = true;
+            hitSound.play();
             showMessage("Game Over! Press Space or Tap to Restart");
         }
     } else {
@@ -218,6 +239,7 @@ function flap() {
 
     if (!gameOver) {
         velocity = jump;
+        flapSound.play();
     } else {
         resetGame();
         hideMessage();
