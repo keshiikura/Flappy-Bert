@@ -65,7 +65,7 @@ resizeCanvas();
 
 // BIRD IMAGE
 const birdImg = new Image();
-birdImg.src = "lhian.png";
+birdImg.src = "lhian.png"; // your PNG file
 
 // Bird position and size
 let birdX = 50;
@@ -82,13 +82,10 @@ let jump = -7;
 let pipes = [];
 let pipeWidth = 60;
 let pipeGap = 200;
-
-// NEW: adjustable pipe speed and distance
-let pipeSpeed = 3;       // how fast pipes move
-let pipeDistance = 150;  // frames between new pipes
+let pipeSpeed = 3;           // how fast pipes move
+let minPipeDistance = 250;   // minimum pixel distance between pipes
 
 // Game state
-let frame = 0;
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
@@ -126,15 +123,16 @@ function drawPipes() {
     });
 }
 
-// Update pipe positions and create new pipes
+// Update pipe positions and create new pipes (pixel-based spacing)
 function updatePipes() {
-    pipes.forEach(p => p.x -= pipeSpeed); // use pipeSpeed variable
+    pipes.forEach(p => p.x -= pipeSpeed);
 
     if (pipes.length > 0 && pipes[0].x + pipeWidth < 0) {
         pipes.shift();
     }
 
-    if (frame % pipeDistance === 0) { // use pipeDistance variable
+    // Create a new pipe only if last pipe is far enough
+    if (pipes.length === 0 || canvas.width - pipes[pipes.length - 1].x >= minPipeDistance) {
         createPipe();
     }
 }
@@ -180,7 +178,6 @@ function resetGame() {
     birdY = 250;
     velocity = 0;
     pipes = [];
-    frame = 0;
     score = 0;
     gameOver = false;
     document.getElementById("score").innerText = score;
@@ -203,8 +200,6 @@ function gameLoop() {
             gameOver = true;
             showMessage("Game Over! Press Space or Tap to Restart");
         }
-
-        frame++;
     } else {
         drawBird();
         drawPipes();
@@ -236,7 +231,7 @@ document.addEventListener("keydown", e => { if (e.code === "Space") flap(); });
 document.addEventListener("mousedown", flap);
 document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, {passive: false});
 
-// Start the loop
+// Start game loop
 gameLoop();
 </script>
 
