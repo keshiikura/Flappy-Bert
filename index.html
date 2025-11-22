@@ -9,12 +9,13 @@
         overflow: hidden;
         background: #70c5ce;
         font-family: Arial, sans-serif;
+        touch-action: manipulation; /* prevent default touch behavior */
     }
 
     #gameCanvas {
-        background: linear-gradient(#70c5ce, #ffffff);
         display: block;
         margin: 0 auto;
+        background: linear-gradient(#70c5ce, #ffffff);
     }
 
     #score {
@@ -38,6 +39,8 @@
         font-weight: bold;
         text-shadow: 2px 2px 5px #000;
         display: none;
+        text-align: center;
+        padding: 0 20px;
     }
 </style>
 </head>
@@ -45,22 +48,30 @@
 
 <canvas id="gameCanvas" width="400" height="600"></canvas>
 <div id="score">0</div>
-<div id="message">Press Space or Click to Start</div>
+<div id="message">Press Space or Tap to Start</div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Make canvas responsive
+function resizeCanvas() {
+    const scale = Math.min(window.innerWidth / 400, window.innerHeight / 600);
+    canvas.style.width = 400 * scale + "px";
+    canvas.style.height = 600 * scale + "px";
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
 // BIRD IMAGE
 const birdImg = new Image();
 birdImg.src = "lhian.png"; // <-- your PNG file
 
-// Bird position
+// Bird position and size
 let birdX = 50;
 let birdY = 250;
-let birdWidth = 80; // increase width to make it larger
+let birdWidth = 80; // larger bird
 let birdHeight;
-
 
 // Physics
 let gravity = 0.4;
@@ -78,12 +89,11 @@ let score = 0;
 let gameOver = false;
 let gameStarted = false;
 
-// Set bird height after image loads
-// Set bird height after image loads
+// Set bird height based on aspect ratio
 birdImg.onload = function() {
     const aspectRatio = birdImg.height / birdImg.width;
-    birdHeight = birdWidth * aspectRatio; // height scales automatically
-    showMessage("Press Space or Click to Start");
+    birdHeight = birdWidth * aspectRatio;
+    showMessage("Press Space or Tap to Start");
 };
 
 // Draw the bird
@@ -187,7 +197,7 @@ function gameLoop() {
 
         if (detectCollision()) {
             gameOver = true;
-            showMessage("Game Over! Press Space or Click to Restart");
+            showMessage("Game Over! Press Space or Tap to Restart");
         }
 
         frame++;
@@ -214,16 +224,16 @@ function flap() {
         resetGame();
         hideMessage();
         gameStarted = false;
-        showMessage("Press Space or Click to Start");
+        showMessage("Press Space or Tap to Start");
     }
 }
 
-// Controls
-document.addEventListener("keydown", e => {
-    if (e.code === "Space") flap();
-});
+// Controls for keyboard, mouse, and touch
+document.addEventListener("keydown", e => { if (e.code === "Space") flap(); });
 document.addEventListener("mousedown", flap);
+document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, {passive: false});
 
+// Start the loop
 gameLoop();
 </script>
 
