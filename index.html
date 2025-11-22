@@ -74,7 +74,7 @@ let birdWidth = 80;
 let birdHeight;
 
 // Physics
-let gravity = 0.4;
+let gravity = 0.4; // pixels per frame at 60fps
 let velocity = 0;
 let jump = -7;
 
@@ -82,8 +82,8 @@ let jump = -7;
 let pipes = [];
 let pipeWidth = 60;
 let pipeGap = 200;
-let pipeSpeed = 3;
-let minPipeDistance = 320; // horizontal spacing between pipes
+let pipeSpeed = 3; // pixels per frame at 60fps
+let minPipeDistance = 320;
 
 // Game state
 let score = 0;
@@ -95,7 +95,7 @@ let flapSound = new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3
 let pointSound = new Audio("https://www.soundjay.com/button/sounds/button-09.mp3");
 let hitSound = new Audio("https://www.soundjay.com/button/sounds/button-10.mp3");
 
-// Preload sounds (required for mobile browsers)
+// Preload sounds for mobile
 function initSounds() {
     [flapSound, pointSound, hitSound].forEach(sound => {
         sound.play().catch(()=>{});
@@ -141,15 +141,14 @@ function drawPipes() {
     });
 }
 
-// Update pipe positions and create new pipes
-function updatePipes() {
-    pipes.forEach(p => p.x -= pipeSpeed);
+// Update pipes (time-based)
+function updatePipes(deltaTime) {
+    pipes.forEach(p => p.x -= pipeSpeed * deltaTime);
 
     if (pipes.length > 0 && pipes[0].x + pipeWidth < 0) {
         pipes.shift();
     }
 
-    // Create a new pipe only if last pipe is far enough
     if (pipes.length === 0 || canvas.width - pipes[pipes.length - 1].x >= minPipeDistance) {
         createPipe();
     }
@@ -181,14 +180,12 @@ function updateScore() {
     });
 }
 
-// Show message overlay
+// Show/Hide messages
 function showMessage(msg) {
     const messageDiv = document.getElementById("message");
     messageDiv.innerText = msg;
     messageDiv.style.display = "block";
 }
-
-// Hide message overlay
 function hideMessage() {
     document.getElementById("message").style.display = "none";
 }
@@ -203,17 +200,21 @@ function resetGame() {
     document.getElementById("score").innerText = score;
 }
 
-// Main game loop
-function gameLoop() {
+// Time-based game loop
+let lastTime = 0;
+function gameLoop(timestamp) {
+    const deltaTime = (timestamp - lastTime) / 16.67; // 16.67ms ≈ 60fps
+    lastTime = timestamp;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gameStarted && !gameOver) {
-        velocity += gravity;
-        birdY += velocity;
+        velocity += gravity * deltaTime;
+        birdY += velocity * deltaTime;
 
         drawBird();
         drawPipes();
-        updatePipes();
+        updatePipes(deltaTime);
         updateScore();
 
         if (detectCollision()) {
@@ -228,6 +229,7 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
+requestAnimationFrame(gameLoop);
 
 // Flap function
 function flap() {
@@ -252,9 +254,6 @@ function flap() {
 document.addEventListener("keydown", e => { if (e.code === "Space") flap(); });
 document.addEventListener("mousedown", flap);
 document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, {passive: false});
-
-// Start game loop
-gameLoop();
 </script>
 
 </body>
