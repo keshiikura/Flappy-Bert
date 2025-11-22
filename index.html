@@ -9,7 +9,7 @@
         overflow: hidden;
         background: #70c5ce;
         font-family: Arial, sans-serif;
-        touch-action: manipulation; /* prevent default touch behavior */
+        touch-action: manipulation;
     }
 
     #gameCanvas {
@@ -65,12 +65,12 @@ resizeCanvas();
 
 // BIRD IMAGE
 const birdImg = new Image();
-birdImg.src = "lhian.png"; // <-- your PNG file
+birdImg.src = "lhian.png";
 
 // Bird position and size
 let birdX = 50;
 let birdY = 250;
-let birdWidth = 80; // larger bird
+let birdWidth = 80;
 let birdHeight;
 
 // Physics
@@ -82,6 +82,10 @@ let jump = -7;
 let pipes = [];
 let pipeWidth = 60;
 let pipeGap = 200;
+
+// NEW: adjustable pipe speed and distance
+let pipeSpeed = 3;       // how fast pipes move
+let pipeDistance = 150;  // frames between new pipes
 
 // Game state
 let frame = 0;
@@ -124,13 +128,13 @@ function drawPipes() {
 
 // Update pipe positions and create new pipes
 function updatePipes() {
-    pipes.forEach(p => p.x -= 2);
+    pipes.forEach(p => p.x -= pipeSpeed); // use pipeSpeed variable
 
     if (pipes.length > 0 && pipes[0].x + pipeWidth < 0) {
         pipes.shift();
     }
 
-    if (frame % 120 === 0) {
+    if (frame % pipeDistance === 0) { // use pipeDistance variable
         createPipe();
     }
 }
@@ -202,7 +206,6 @@ function gameLoop() {
 
         frame++;
     } else {
-        // Draw bird at start position
         drawBird();
         drawPipes();
     }
@@ -228,7 +231,7 @@ function flap() {
     }
 }
 
-// Controls for keyboard, mouse, and touch
+// Controls
 document.addEventListener("keydown", e => { if (e.code === "Space") flap(); });
 document.addEventListener("mousedown", flap);
 document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, {passive: false});
