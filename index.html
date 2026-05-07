@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Flappy Bird</title>
+
 <style>
     body {
         margin: 0;
@@ -29,6 +30,17 @@
         text-shadow: 2px 2px 5px #000;
     }
 
+    /* IMAGE ABOVE GAME OVER TEXT */
+    #gameOverImg {
+        position: absolute;
+        top: 28%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        display: none;
+        pointer-events: none;
+    }
+
     #message {
         position: absolute;
         top: 50%;
@@ -44,17 +56,23 @@
     }
 </style>
 </head>
+
 <body>
 
 <canvas id="gameCanvas" width="400" height="600"></canvas>
+
 <div id="score">0</div>
+
+<!-- YOUR IMAGE ABOVE GAME OVER TEXT -->
+<img id="gameOverImg" src="lhian.png">
+
 <div id="message">Press Space or Tap to Start</div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Make canvas responsive
+// Resize canvas
 function resizeCanvas() {
     const scale = Math.min(window.innerWidth / 400, window.innerHeight / 600);
     canvas.style.width = 400 * scale + "px";
@@ -63,18 +81,17 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// BIRD IMAGE
+// Bird
 const birdImg = new Image();
-birdImg.src = "lhian.png"; // replace with your PNG URL
+birdImg.src = "AteTagaMarilao.png";
 
-// Bird position and size
 let birdX = 50;
 let birdY = 250;
 let birdWidth = 80;
 let birdHeight;
 
 // Physics
-let gravity = 0.4; // pixels per frame at 60fps
+let gravity = 0.4;
 let velocity = 0;
 let jump = -7;
 
@@ -82,7 +99,7 @@ let jump = -7;
 let pipes = [];
 let pipeWidth = 60;
 let pipeGap = 200;
-let pipeSpeed = 3; // pixels per frame at 60fps
+let pipeSpeed = 3;
 let minPipeDistance = 320;
 
 // Game state
@@ -90,36 +107,51 @@ let score = 0;
 let gameOver = false;
 let gameStarted = false;
 
-// SOUND EFFECTS
+// Sounds
 let flapSound = new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3");
-let pointSound = new Audio("https://www.soundjay.com/button/sounds/button-09.mp3");
-let hitSound = new Audio("https://www.soundjay.com/button/sounds/button-10.mp3");
+let pointSound = new Audio("https://www.soundjay.com/buttons/sounds/button-09.mp3");
+let hitSound = new Audio("https://www.soundjay.com/buttons/sounds/button-10.mp3");
 
-// Preload sounds for mobile
-function initSounds() {
-    [flapSound, pointSound, hitSound].forEach(sound => {
-        sound.play().catch(()=>{});
-        sound.pause();
-        sound.currentTime = 0;
-    });
+// Show message
+function showMessage(msg) {
+    const messageDiv = document.getElementById("message");
+    messageDiv.innerText = msg;
+    messageDiv.style.display = "block";
+
+    if (msg.includes("Game Over")) {
+        document.getElementById("gameOverImg").style.display = "block";
+    }
 }
-document.addEventListener("keydown", initSounds, {once:true});
-document.addEventListener("mousedown", initSounds, {once:true});
-document.addEventListener("touchstart", initSounds, {once:true});
 
-// Set bird height based on aspect ratio
+// Hide message
+function hideMessage() {
+    document.getElementById("message").style.display = "none";
+    document.getElementById("gameOverImg").style.display = "none";
+}
+
+// Reset game
+function resetGame() {
+    birdY = 250;
+    velocity = 0;
+    pipes = [];
+    score = 0;
+    gameOver = false;
+    document.getElementById("score").innerText = score;
+}
+
+// Bird setup
 birdImg.onload = function() {
     const aspectRatio = birdImg.height / birdImg.width;
     birdHeight = birdWidth * aspectRatio;
     showMessage("Press Space or Tap to Start");
 };
 
-// Draw the bird
+// Draw bird
 function drawBird() {
     ctx.drawImage(birdImg, birdX, birdY, birdWidth, birdHeight);
 }
 
-// Create new pipes
+// Pipes
 function createPipe() {
     let topHeight = Math.random() * (canvas.height - pipeGap - 50);
     let bottomHeight = canvas.height - topHeight - pipeGap;
@@ -132,7 +164,6 @@ function createPipe() {
     });
 }
 
-// Draw all pipes
 function drawPipes() {
     ctx.fillStyle = "green";
     pipes.forEach(p => {
@@ -141,7 +172,6 @@ function drawPipes() {
     });
 }
 
-// Update pipes (time-based)
 function updatePipes(deltaTime) {
     pipes.forEach(p => p.x -= pipeSpeed * deltaTime);
 
@@ -154,7 +184,7 @@ function updatePipes(deltaTime) {
     }
 }
 
-// Detect collisions
+// Collision
 function detectCollision() {
     for (let p of pipes) {
         if (
@@ -168,7 +198,7 @@ function detectCollision() {
     return birdY + birdHeight > canvas.height || birdY < 0;
 }
 
-// Update score
+// Score
 function updateScore() {
     pipes.forEach(p => {
         if (!p.scored && p.x + pipeWidth < birdX) {
@@ -180,30 +210,11 @@ function updateScore() {
     });
 }
 
-// Show/Hide messages
-function showMessage(msg) {
-    const messageDiv = document.getElementById("message");
-    messageDiv.innerText = msg;
-    messageDiv.style.display = "block";
-}
-function hideMessage() {
-    document.getElementById("message").style.display = "none";
-}
-
-// Reset game
-function resetGame() {
-    birdY = 250;
-    velocity = 0;
-    pipes = [];
-    score = 0;
-    gameOver = false;
-    document.getElementById("score").innerText = score;
-}
-
-// Time-based game loop
+// Game loop
 let lastTime = 0;
+
 function gameLoop(timestamp) {
-    const deltaTime = (timestamp - lastTime) / 16.67; // 16.67ms ≈ 60fps
+    const deltaTime = (timestamp - lastTime) / 16.67;
     lastTime = timestamp;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -222,6 +233,7 @@ function gameLoop(timestamp) {
             hitSound.play();
             showMessage("Game Over! Press Space or Tap to Restart");
         }
+
     } else {
         drawBird();
         drawPipes();
@@ -231,7 +243,7 @@ function gameLoop(timestamp) {
 }
 requestAnimationFrame(gameLoop);
 
-// Flap function
+// Controls
 function flap() {
     if (!gameStarted) {
         gameStarted = true;
@@ -244,16 +256,22 @@ function flap() {
         flapSound.play();
     } else {
         resetGame();
-        hideMessage();
+        hideMessage();   
         gameStarted = false;
         showMessage("Press Space or Tap to Start");
     }
 }
 
-// Controls
-document.addEventListener("keydown", e => { if (e.code === "Space") flap(); });
+document.addEventListener("keydown", e => {
+    if (e.code === "Space") flap();
+});
+
 document.addEventListener("mousedown", flap);
-document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, {passive: false});
+
+document.addEventListener("touchstart", e => {
+    e.preventDefault();
+    flap();
+}, {passive: false});
 </script>
 
 </body>
